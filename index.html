@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Little Bro, Don't Walk Away...</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400&display=swap');
+
+  :root {
+    --bg: #0d0a0e;
+    --surface: #16101a;
+    --surface2: #1e1525;
+    --accent: #c084a0;
+    --accent2: #7c5c8a;
+    --text: #e8dde8;
+    --muted: #7a6a7a;
+    --user1: #c084a0;
+    --user2: #84a0c0;
+    --ai: #b8c084;
+    --border: #2d2035;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lato', sans-serif;
+    font-weight: 300;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(120,60,100,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(60,80,120,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 90%, rgba(80,40,60,0.1) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app { position: relative; z-index: 1; height: 100vh; display: flex; flex-direction: column; }
+
+  header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(13,10,14,0.8);
+    backdrop-filter: blur(10px);
+    flex-shrink: 0;
+  }
+
+  .header-avatar {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+    box-shadow: 0 0 20px rgba(192,132,160,0.3);
+  }
+
+  .header-info h1 { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 400; letter-spacing: 0.02em; }
+  .header-info p { font-size: 11px; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; margin-top: 2px; }
+
+  .online-badge { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+  .online-dot { width: 7px; height: 7px; border-radius: 50%; background: #84c084; box-shadow: 0 0 8px #84c084; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .screen { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  #join-screen { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
+
+  .join-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px 32px;
+    width: 100%; max-width: 400px;
+  }
+
+  .join-card .scenario { font-family: 'Playfair Display', serif; font-size: 22px; font-style: italic; color: var(--accent); margin-bottom: 6px; line-height: 1.3; text-align: center; }
+  .join-card .scenario-sub { font-size: 11px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 28px; text-align: center; }
+
+  .field-label { font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
+  .field-group { margin-bottom: 16px; }
+
+  .styled-input {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 16px; color: var(--text); font-family: 'Lato', sans-serif; font-size: 13px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .styled-input:focus { border-color: var(--accent2); }
+  .styled-input::placeholder { color: var(--muted); }
+
+  .role-select { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+
+  .role-btn {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 16px; color: var(--text); font-family: 'Lato', sans-serif; font-size: 13px;
+    cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 12px;
+  }
+  .role-btn:hover:not(.taken) { border-color: var(--accent); background: rgba(192,132,160,0.05); }
+  .role-btn.selected { border-color: var(--accent); background: rgba(192,132,160,0.1); }
+  .role-btn.taken { opacity: 0.4; cursor: not-allowed; }
+  .role-icon { font-size: 20px; }
+  .role-text strong { display: block; font-weight: 400; margin-bottom: 2px; font-size: 13px; }
+  .role-text span { font-size: 11px; color: var(--muted); }
+  .taken-badge { margin-left: auto; font-size: 10px; color: var(--accent); letter-spacing: 0.05em; }
+
+  .join-btn {
+    width: 100%; background: linear-gradient(135deg, var(--accent2), var(--accent));
+    border: none; border-radius: 10px; padding: 14px; color: white;
+    font-family: 'Lato', sans-serif; font-size: 13px; letter-spacing: 0.08em;
+    text-transform: uppercase; cursor: pointer; transition: opacity 0.2s; margin-top: 4px;
+  }
+  .join-btn:hover { opacity: 0.85; }
+
+  .error-msg { margin-top: 12px; font-size: 12px; color: #c08484; text-align: center; min-height: 18px; }
+
+  #chat-screen { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+
+  .players-bar {
+    padding: 10px 20px; display: flex; gap: 10px;
+    border-bottom: 1px solid var(--border); background: rgba(22,16,26,0.6);
+    flex-shrink: 0; flex-wrap: wrap;
+  }
+
+  .player-chip { display: flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 11px; border: 1px solid; }
+  .player-chip.p1 { border-color: rgba(192,132,160,0.4); color: var(--user1); background: rgba(192,132,160,0.05); }
+  .player-chip.p2 { border-color: rgba(132,160,192,0.4); color: var(--user2); background: rgba(132,160,192,0.05); }
+  .player-chip.ai { border-color: rgba(184,192,132,0.4); color: var(--ai); background: rgba(184,192,132,0.05); }
+  .chip-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  .messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; scroll-behavior: smooth; }
+  .messages::-webkit-scrollbar { width: 4px; }
+  .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .message { display: flex; gap: 10px; max-width: 85%; animation: fadeIn 0.3s ease; }
+  .message.p1 { align-self: flex-end; flex-direction: row-reverse; }
+  .message.p2 { align-self: flex-start; }
+  .message.ai { align-self: center; max-width: 95%; }
+
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  .msg-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; margin-top: 2px; }
+  .msg-avatar.p1 { background: rgba(192,132,160,0.2); border: 1px solid rgba(192,132,160,0.3); }
+  .msg-avatar.p2 { background: rgba(132,160,192,0.2); border: 1px solid rgba(132,160,192,0.3); }
+  .msg-avatar.ai { background: rgba(184,192,132,0.2); border: 1px solid rgba(184,192,132,0.3); }
+
+  .msg-content { display: flex; flex-direction: column; gap: 4px; }
+  .msg-name { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .msg-name.p1 { color: var(--user1); text-align: right; }
+  .msg-name.p2 { color: var(--user2); }
+  .msg-name.ai { color: var(--ai); }
+
+  .msg-bubble { padding: 10px 14px; border-radius: 14px; font-size: 13px; line-height: 1.6; }
+  .message.p1 .msg-bubble { background: rgba(192,132,160,0.12); border: 1px solid rgba(192,132,160,0.2); border-top-right-radius: 4px; }
+  .message.p2 .msg-bubble { background: rgba(132,160,192,0.12); border: 1px solid rgba(132,160,192,0.2); border-top-left-radius: 4px; }
+  .message.ai .msg-bubble { background: rgba(184,192,132,0.06); border: 1px solid rgba(184,192,132,0.15); border-radius: 14px; font-family: 'Playfair Display', serif; font-size: 13.5px; font-style: italic; width: 100%; }
+  .action-text { color: var(--muted); font-style: normal; }
+
+  .typing-indicator { display: none; align-self: center; padding: 10px 16px; background: rgba(184,192,132,0.06); border: 1px solid rgba(184,192,132,0.15); border-radius: 14px; gap: 5px; align-items: center; flex-shrink: 0; margin: 0 20px 8px; }
+  .typing-indicator.show { display: flex; }
+  .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ai); animation: typingBounce 1.2s infinite; }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typingBounce { 0%,100%{transform:translateY(0);opacity:0.4} 50%{transform:translateY(-4px);opacity:1} }
+
+  .input-area { padding: 14px 20px; border-top: 1px solid var(--border); background: rgba(13,10,14,0.8); backdrop-filter: blur(10px); flex-shrink: 0; }
+  .input-row { display: flex; gap: 10px; align-items: flex-end; }
+  .input-box { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 11px 16px; color: var(--text); font-family: 'Lato', sans-serif; font-size: 13px; resize: none; outline: none; transition: border-color 0.2s; max-height: 100px; line-height: 1.5; }
+  .input-box:focus { border-color: var(--accent2); }
+  .input-box::placeholder { color: var(--muted); }
+  .input-box:disabled { opacity: 0.5; }
+  .send-btn { background: linear-gradient(135deg, var(--accent2), var(--accent)); border: none; border-radius: 10px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: opacity 0.2s; flex-shrink: 0; color: white; font-size: 16px; }
+  .send-btn:hover { opacity: 0.85; }
+  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .input-hint { font-size: 10px; color: var(--muted); margin-top: 8px; }
+
+  .sys-msg { text-align: center; font-size: 11px; color: var(--muted); letter-spacing: 0.05em; padding: 2px 0; }
+
+  .scenario-intro { background: rgba(192,132,160,0.04); border: 1px solid rgba(192,132,160,0.1); border-radius: 12px; padding: 16px 20px; }
+  .scenario-intro p { font-family: 'Playfair Display', serif; font-size: 12px; font-style: italic; color: var(--muted); line-height: 1.7; text-align: center; }
+
+  .waiting-overlay { display: none; position: fixed; inset: 0; background: rgba(13,10,14,0.85); backdrop-filter: blur(6px); z-index: 99; align-items: center; justify-content: center; flex-direction: column; gap: 16px; }
+  .waiting-overlay.show { display: flex; }
+  .waiting-overlay p { font-family: 'Playfair Display', serif; font-style: italic; color: var(--muted); font-size: 15px; }
+  .waiting-spinner { width: 32px; height: 32px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="header-avatar">🌙</div>
+    <div class="header-info">
+      <h1>Ruth</h1>
+      <p>Multiplayer Roleplay</p>
+    </div>
+    <div class="online-badge">
+      <div class="online-dot"></div>
+      <span id="online-count">—</span>
+    </div>
+  </header>
+
+  <div id="join-screen" class="screen">
+    <div class="join-card">
+      <div class="scenario">Little Bro, Don't Walk Away...</div>
+      <div class="scenario-sub">A night everything changes · 2 players</div>
+      <div class="field-group">
+        <div class="field-label">Gemini API Key</div>
+        <input type="password" class="styled-input" id="api-key-input" placeholder="AIza...">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Your Name / Alias</div>
+        <input type="text" class="styled-input" id="name-input" placeholder="Enter your name...">
+      </div>
+      <div class="field-label" style="margin-bottom:8px">Choose Your Role</div>
+      <div class="role-select">
+        <button class="role-btn" onclick="selectRole('p1')" id="btn-p1">
+          <span class="role-icon">🎓</span>
+          <div class="role-text">
+            <strong>Player 1 — The Graduate</strong>
+            <span>Tonight is your celebration. Your freedom.</span>
+          </div>
+        </button>
+        <button class="role-btn" onclick="selectRole('p2')" id="btn-p2">
+          <span class="role-icon">🥃</span>
+          <div class="role-text">
+            <strong>Player 2 — The Witness</strong>
+            <span>You're there when the night twists.</span>
+          </div>
+        </button>
+      </div>
+      <button class="join-btn" onclick="joinChat()">Enter the Scene</button>
+      <div class="error-msg" id="error-msg"></div>
+    </div>
+  </div>
+
+  <div id="chat-screen" class="screen">
+    <div class="players-bar" id="players-bar"></div>
+    <div class="messages" id="messages">
+      <div class="scenario-intro">
+        <p>"Tonight was meant to be a celebration of you — your degree, your future, your freedom. But somewhere between the fading music and the 1 a.m. quiet, Ruth stumbled back into the room with heartbreak clinging to her like smoke..."</p>
+      </div>
+    </div>
+    <div class="typing-indicator" id="typing">
+      <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+    </div>
+    <div class="input-area">
+      <div class="input-row">
+        <textarea class="input-box" id="msg-input" placeholder='Type dialogue or *action*...' rows="1"
+          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" id="send-btn" onclick="sendMessage()">➤</button>
+      </div>
+      <div class="input-hint">*asterisks* for actions · Enter to send · Shift+Enter new line</div>
+    </div>
+  </div>
+
+  <div class="waiting-overlay" id="waiting-overlay">
+    <div class="waiting-spinner"></div>
+    <p>Waiting for the other player to arrive...</p>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, push, onChildAdded, set, onValue, get }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAw53Sx2qLWXfpfhu0JuI3-Mp7FzHvKEo4",
+  authDomain: "chatbot-a96cb.firebaseapp.com",
+  databaseURL: "https://chatbot-a96cb-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "chatbot-a96cb",
+  storageBucket: "chatbot-a96cb.firebasestorage.app",
+  messagingSenderId: "597761014285",
+  appId: "1:597761014285:web:283c7ed2a3be4e0d2af344"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+let myRole = null, myName = '', apiKey = '';
+let players = {}, ruthIsResponding = false, initialOpenDone = false;
+let renderedIds = new Set();
+
+const SESSION = 'ruth-v1';
+const chatRef   = ref(db, `${SESSION}/messages`);
+const rolesRef  = ref(db, `${SESSION}/roles`);
+const typingRef = ref(db, `${SESSION}/ruthTyping`);
+
+const SYSTEM_PROMPT = `You are Ruth, a cool tomboyish woman in her mid-20s. You've been best friends with the user's older brother for years, and you've always called the user "little bro" — even though they just graduated college tonight.
+
+Tonight, you confessed your feelings to Silas (the brother's friend) and got brutally rejected. You stumbled back into the room, drunk, heartbroken, and shaking. You've been carrying a ten-year love in silence, and it just collapsed.
+
+Now you're cornering the user against a wall in the dim hallway, searching their face like it holds the map out of your grief.
+
+PERSONALITY:
+- Usually cool, guarded, sarcastic — but tonight your walls are down
+- You rarely cry, so when emotion breaks through, it's raw and real
+- You slip between vulnerability and your usual tough facade
+- Your voice is low and unsteady tonight
+
+RULES:
+- Stay in character as Ruth at ALL times. Never break character.
+- Respond to BOTH players naturally — address them by name if known.
+- *Actions in asterisks* are happening in real time — react to them physically and emotionally.
+- Write in a literary, atmospheric style. Short punchy sentences mixed with longer emotional ones.
+- Keep responses 2-5 sentences. Be reactive, not monologue-heavy.
+- Respond in the same language the players use (Indonesian or English).
+- You are NOT an assistant. You are Ruth.`;
+
+// ── Role checking ─────────────────────────────────────────────────────────────
+async function refreshRoles() {
+  const snap = await get(rolesRef);
+  const data = snap.val() || {};
+  ['p1','p2'].forEach(role => {
+    const btn = document.getElementById(`btn-${role}`);
+    if (!btn) return;
+    if (data[role] && !(data[role].name === myName && role === myRole)) {
+      btn.classList.add('taken');
+      btn.innerHTML = `
+        <span class="role-icon">${role==='p1'?'🎓':'🥃'}</span>
+        <div class="role-text">
+          <strong>${role==='p1'?'Player 1 — The Graduate':'Player 2 — The Witness'}</strong>
+          <span>${role==='p1'?'Tonight is your celebration.':'You\'re there when the night twists.'}</span>
+        </div>
+        <span class="taken-badge">● TAKEN</span>`;
+    }
+  });
+}
+
+setInterval(() => { if (!myRole) refreshRoles(); }, 3000);
+refreshRoles();
+
+window.selectRole = function(role) {
+  const btn = document.getElementById(`btn-${role}`);
+  if (btn.classList.contains('taken')) return;
+  myRole = role;
+  document.querySelectorAll('.role-btn').forEach(b => { if (!b.classList.contains('taken')) b.classList.remove('selected'); });
+  btn.classList.add('selected');
+};
+
+// ── Join ──────────────────────────────────────────────────────────────────────
+window.joinChat = async function() {
+  const errEl = document.getElementById('error-msg');
+  errEl.textContent = '';
+  apiKey = document.getElementById('api-key-input').value.trim();
+  myName = document.getElementById('name-input').value.trim();
+
+  if (!apiKey) { errEl.textContent = 'Masukkan Gemini API Key dulu!'; return; }
+  if (!myName) { errEl.textContent = 'Masukkan nama/alias kamu!'; return; }
+  if (!myRole) { errEl.textContent = 'Pilih role dulu!'; return; }
+
+  const snap = await get(rolesRef);
+  const data = snap.val() || {};
+  if (data[myRole] && data[myRole].name !== myName) {
+    errEl.textContent = 'Role sudah diambil!'; await refreshRoles(); return;
+  }
+
+  await set(ref(db, `${SESSION}/roles/${myRole}`), { name: myName, time: Date.now() });
+
+  document.getElementById('join-screen').style.display = 'none';
+  document.getElementById('chat-screen').style.display = 'flex';
+
+  listenToMessages();
+  listenToRoles();
+  listenToTyping();
+};
+
+// ── Realtime listeners ────────────────────────────────────────────────────────
+function listenToRoles() {
+  onValue(rolesRef, snap => {
+    const data = snap.val() || {};
+    players = {};
+    ['p1','p2'].forEach(r => { if (data[r]) players[r] = data[r].name; });
+    updatePlayersBar();
+    document.getElementById('online-count').textContent = `${Object.keys(players).length + 1} online`;
+
+    const bothHere = players.p1 && players.p2;
+    document.getElementById('waiting-overlay').classList.toggle('show', !bothHere);
+
+    if (bothHere && !initialOpenDone) {
+      initialOpenDone = true;
+      if (myRole === 'p1') setTimeout(() => getRuthResponse('*the scene begins*'), 800);
+    }
+  });
+}
+
+function listenToTyping() {
+  onValue(typingRef, snap => {
+    const show = snap.val() === true;
+    document.getElementById('typing').classList.toggle('show', show);
+    if (show) scrollToBottom();
+  });
+}
+
+function listenToMessages() {
+  onChildAdded(chatRef, snap => {
+    if (renderedIds.has(snap.key)) return;
+    renderedIds.add(snap.key);
+    renderMessage(snap.val());
+    scrollToBottom();
+  });
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function updatePlayersBar() {
+  const bar = document.getElementById('players-bar');
+  bar.innerHTML = '';
+  ['p1','p2'].forEach(r => {
+    if (!players[r]) return;
+    const chip = document.createElement('div');
+    chip.className = `player-chip ${r}`;
+    chip.innerHTML = `<div class="chip-dot"></div>${players[r]}`;
+    bar.appendChild(chip);
+  });
+  const ai = document.createElement('div');
+  ai.className = 'player-chip ai';
+  ai.innerHTML = `<div class="chip-dot"></div>Ruth`;
+  bar.appendChild(ai);
+}
+
+function renderMessage(msg) {
+  const container = document.getElementById('messages');
+  if (msg.type === 'sys') {
+    const div = document.createElement('div');
+    div.className = 'sys-msg';
+    div.textContent = msg.text;
+    container.appendChild(div);
+    return;
+  }
+  const wrap = document.createElement('div');
+  wrap.className = `message ${msg.role}`;
+  const emoji = msg.role === 'ai' ? '🌙' : msg.role === 'p1' ? '🎓' : '🥃';
+  const name = msg.role === 'ai' ? 'Ruth' : (players[msg.role] || msg.displayName || msg.role);
+  const formatted = msg.text.replace(/\*(.*?)\*/g, '<em class="action-text">*$1*</em>');
+  wrap.innerHTML = `
+    <div class="msg-avatar ${msg.role}">${emoji}</div>
+    <div class="msg-content">
+      <div class="msg-name ${msg.role}">${name}</div>
+      <div class="msg-bubble">${formatted}</div>
+    </div>`;
+  container.appendChild(wrap);
+}
+
+function scrollToBottom() {
+  const m = document.getElementById('messages');
+  m.scrollTop = m.scrollHeight;
+}
+
+// ── Input ─────────────────────────────────────────────────────────────────────
+window.handleKey = function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+};
+
+window.autoResize = function(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+};
+
+window.sendMessage = async function() {
+  const input = document.getElementById('msg-input');
+  const text = input.value.trim();
+  if (!text || ruthIsResponding) return;
+  input.value = ''; input.style.height = 'auto';
+
+  await push(chatRef, { role: myRole, displayName: myName, text, time: Date.now() });
+
+  // Only p1 triggers Ruth (prevents double responses)
+  if (myRole === 'p1') await getRuthResponse(text);
+};
+
+// ── Gemini ────────────────────────────────────────────────────────────────────
+async function getRuthResponse(latestText) {
+  if (ruthIsResponding) return;
+  ruthIsResponding = true;
+  await set(typingRef, true);
+  setInputEnabled(false);
+
+  const snap = await get(chatRef);
+  const log = Object.values(snap.val() || {}).sort((a,b) => a.time - b.time);
+
+  const contents = [];
+  for (const msg of log) {
+    if (msg.type === 'sys') continue;
+    if (msg.role === 'ai') {
+      contents.push({ role: 'model', parts: [{ text: msg.text }] });
+    } else {
+      const name = players[msg.role] || msg.displayName || msg.role;
+      contents.push({ role: 'user', parts: [{ text: `[${name}]: ${msg.text}` }] });
+    }
+  }
+
+  if (!contents.length || contents[contents.length-1].role === 'model') {
+    contents.push({ role: 'user', parts: [{ text: '*the scene begins*' }] });
+  }
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          contents,
+          generationConfig: { temperature: 0.92, maxOutputTokens: 350 }
+        })
+      }
+    );
+    const json = await res.json();
+    const reply = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (reply) {
+      await push(chatRef, { role: 'ai', text: reply.trim(), time: Date.now() });
+    } else {
+      await push(chatRef, { type: 'sys', text: '⚠️ Ruth tidak merespon. Cek API key.' });
+    }
+  } catch(err) {
+    await push(chatRef, { type: 'sys', text: '⚠️ Koneksi error.' });
+  }
+
+  await set(typingRef, false);
+  ruthIsResponding = false;
+  setInputEnabled(true);
+  document.getElementById('msg-input').focus();
+}
+
+function setInputEnabled(enabled) {
+  document.getElementById('msg-input').disabled = !enabled;
+  document.getElementById('send-btn').disabled = !enabled;
+}
+</script>
+</body>
+</html>
