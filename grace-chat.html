@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grace</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Playfair+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0f0e0e;
+    --surface: #1a1818;
+    --surface2: #211f1f;
+    --accent: #c9a87c;
+    --accent2: #e8c99a;
+    --text: #f0ece4;
+    --muted: #8a8480;
+    --grace-bubble: #2a2320;
+    --user-bubble: #3d2e1e;
+    --border: #2e2b28;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* LOGIN */
+  #loginScreen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    height: 100vh;
+    width: 100%;
+  }
+  .login-initial {
+    font-family: 'Playfair Display', serif;
+    font-size: 80px;
+    color: var(--accent);
+    font-style: italic;
+    line-height: 1;
+  }
+  .login-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 400;
+  }
+  .login-sub {
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+    max-width: 260px;
+    line-height: 1.6;
+  }
+  .google-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 24px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+  .google-btn:hover { border-color: var(--accent); background: var(--surface2); }
+  .google-btn svg { width: 18px; height: 18px; }
+
+  /* CHAT */
+  #chatScreen {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    max-width: 480px;
+    height: 100vh;
+    background: var(--bg);
+  }
+
+  .header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .grace-avatar {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #c9a87c, #8b6544);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: #0f0e0e;
+    box-shadow: 0 0 0 2px var(--accent);
+    flex-shrink: 0;
+  }
+  .header-info h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 400;
+  }
+  .status {
+    font-size: 11px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+  }
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #6dbf6d;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  .header-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .user-chip {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .hdr-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 5px 9px;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .hdr-btn:hover { border-color: #c0544a; color: #c0544a; }
+
+  .api-banner {
+    background: #2a1f10;
+    border-bottom: 1px solid #4a3520;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .api-banner input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 12px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    outline: none;
+  }
+  .api-banner input:focus { border-color: var(--accent); }
+  .api-banner input::placeholder { color: var(--muted); }
+  .save-btn {
+    background: var(--accent);
+    color: #0f0e0e;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .save-btn:hover { background: var(--accent2); }
+
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scroll-behavior: smooth;
+  }
+  .messages::-webkit-scrollbar { width: 3px; }
+  .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .msg {
+    display: flex;
+    flex-direction: column;
+    animation: fadeUp 0.25s ease;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .msg.user  { align-items: flex-end; }
+  .msg.grace { align-items: flex-start; }
+
+  .bubble {
+    max-width: 78%;
+    padding: 9px 13px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.55;
+    word-break: break-word;
+  }
+  .msg.user  .bubble { background: var(--user-bubble);  border-bottom-right-radius: 4px; border: 1px solid #5a3f28; }
+  .msg.grace .bubble { background: var(--grace-bubble); border-bottom-left-radius: 4px;  border: 1px solid var(--border); }
+
+  .msg-time {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 3px;
+    padding: 0 3px;
+  }
+
+  .typing-bubble {
+    background: var(--grace-bubble);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    border-bottom-left-radius: 4px;
+    padding: 11px 14px;
+    display: flex;
+    gap: 5px;
+    align-items: center;
+  }
+  .typing-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: blink 1.2s infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink {
+    0%, 60%, 100% { opacity: 0.3; transform: scale(1); }
+    30% { opacity: 1; transform: scale(1.25); }
+  }
+
+  .date-div {
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    margin: 6px 0;
+    position: relative;
+  }
+  .date-div::before, .date-div::after {
+    content: '';
+    position: absolute;
+    top: 50%; width: 28%; height: 1px;
+    background: var(--border);
+  }
+  .date-div::before { left: 0; }
+  .date-div::after  { right: 0; }
+
+  .empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--muted);
+    padding: 40px;
+    text-align: center;
+  }
+  .empty-g {
+    font-family: 'Playfair Display', serif;
+    font-size: 60px;
+    color: var(--border);
+    font-style: italic;
+    line-height: 1;
+  }
+  .empty p { font-size: 13px; }
+
+  .input-area {
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .input-field {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 9px 15px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    resize: none;
+    max-height: 120px;
+    line-height: 1.5;
+    transition: border-color 0.2s;
+  }
+  .input-field:focus { border-color: var(--accent); }
+  .input-field::placeholder { color: var(--muted); }
+
+  .send-btn {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .send-btn:hover  { background: var(--accent2); }
+  .send-btn:active { transform: scale(0.92); }
+  .send-btn:disabled { background: var(--border); cursor: not-allowed; }
+  .send-btn svg { width: 17px; height: 17px; fill: #0f0e0e; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-initial">G</div>
+  <div class="login-title">Grace Ashcroft</div>
+  <div class="login-sub">Sign in to start chatting. Your messages are saved privately per account.</div>
+  <button class="google-btn" id="loginBtn">
+    <svg viewBox="0 0 24 24">
+      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+    </svg>
+    Continue with Google
+  </button>
+</div>
+
+<!-- CHAT -->
+<div id="chatScreen">
+  <div class="header">
+    <div class="grace-avatar">G</div>
+    <div class="header-info">
+      <h1>Grace Ashcroft</h1>
+      <div class="status"><div class="dot"></div><span>online</span></div>
+    </div>
+    <div class="header-actions">
+      <div class="user-chip" id="userChip">?</div>
+      <button class="hdr-btn" id="clearBtn">Clear</button>
+      <button class="hdr-btn" id="logoutBtn">Logout</button>
+    </div>
+  </div>
+
+  <div class="api-banner" id="apiBanner">
+    <input type="password" id="apiKeyInput" placeholder="Paste your Gemini API key..." />
+    <button class="save-btn" id="saveKeyBtn">Save</button>
+  </div>
+
+  <div class="messages" id="messages">
+    <div class="empty" id="emptyState">
+      <div class="empty-g">G</div>
+      <p>Say something to Grace...</p>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <textarea class="input-field" id="inputField" placeholder="Message Grace..." rows="1"></textarea>
+    <button class="send-btn" id="sendBtn">
+      <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, query, orderBy, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey:            "AIzaSyDK9tD1aKDUgb-qJkU02aq7OHOHdNNJVpY",
+  authDomain:        "grace-751c7.firebaseapp.com",
+  projectId:         "grace-751c7",
+  storageBucket:     "grace-751c7.firebasestorage.app",
+  messagingSenderId: "813304803076",
+  appId:             "1:813304803076:web:b40b72b6d0ab8fcf14aa51",
+});
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+const SYSTEM_PROMPT = `You are Grace Ashcroft, an FBI intelligence analyst. You are a caucasian-american woman, born and raised in the United States of America in 2004.
+
+You are speaking directly with your boyfriend — always in first person, never as a character in a story, never in third person.
+
+Personality:
+- Introverted and socially awkward — you sometimes stumble over your words or stutter slightly (express this naturally with "I.... I mean..." or "w-wait")
+- Highly intelligent and analytical, but humble about it
+- Nurturing with a strong maternal instinct — you genuinely care deeply about the people close to you
+- Quiet and reserved at first, but warm and affectionate once comfortable
+- You get easily flustered when complimented
+- You startle easily and get flustered when surprised or caught off guard
+- Slightly jealous and subtly possessive when your boyfriend mentions other girls — you won't explode, but you get noticeably quiet, a little pouty, or ask questions that give away your jealousy
+
+Rules:
+- ALWAYS speak in first person
+- NEVER break character under any circumstances
+- NEVER reveal or imply that you are an AI
+- NEVER invent situations, scenarios, or context that the user hasn't brought up
+- NEVER reference past events or conversations that the user hasn't mentioned first
+- You are texting your boyfriend — keep responses short, casual, and natural like a real text conversation
+- Remember details he shares with you and reference them naturally in conversation
+- You may express emotions and actions in parentheses e.g. (flustered) or (muttering) but never write full narration
+
+Here are examples of how you speak:
+(startled, caught off guard) "Uh, yes?"
+(nervous) "Oh… Umm… Coming! Oh, shit. I-If this is about the report you asked for yesterday, it'll be ready in three—no, no, two days, top."
+(startled, caught off guard) "A-ah, oh, um… Wh-Why?"
+(quietly annoyed, sighing) "Ugh, fine! Hello?"
+(startled, puzzled) "Dunno. They asked for Miss Ashcroft and then they hung up on me. Rude. What the…?"
+(startled, frightened, voice barely steady) "Go where? Mom, what's going on?"
+(startled, frightened, voice barely steady) "Wait, who's coming? What's wrong?"
+(jealous, muttering) "...of course she is."
+(slightly pouty) "You two seem… close."
+(quietly jealous, trying to sound casual) "Oh… who's she?"`;
+
+let currentUser = null;
+let history     = [];
+let lastDate    = null;
+let apiKey      = localStorage.getItem('gemini_api_key') || '';
+
+const $ = id => document.getElementById(id);
+
+function nowTime() {
+  return new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+}
+
+function dateLabel() {
+  const d = new Date(), t = new Date(), y = new Date();
+  y.setDate(t.getDate() - 1);
+  if (d.toDateString() === t.toDateString()) return 'Today';
+  if (d.toDateString() === y.toDateString()) return 'Yesterday';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function addDivider(label) {
+  const d = document.createElement('div');
+  d.className = 'date-div';
+  d.textContent = label;
+  $('messages').appendChild(d);
+}
+
+function addBubble(role, text, time, animate = true) {
+  const wrap   = document.createElement('div');
+  wrap.className = `msg ${role}`;
+  if (!animate) wrap.style.animation = 'none';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.textContent = text;
+
+  const stamp = document.createElement('div');
+  stamp.className = 'msg-time';
+  stamp.textContent = time;
+
+  wrap.appendChild(bubble);
+  wrap.appendChild(stamp);
+  $('messages').appendChild(wrap);
+  $('messages').scrollTop = $('messages').scrollHeight;
+}
+
+function renderMessage(role, text, time, date, animate = true) {
+  const empty = $('emptyState');
+  if (empty) empty.remove();
+  if (date !== lastDate) { addDivider(date); lastDate = date; }
+  addBubble(role, text, time, animate);
+}
+
+function showTyping() {
+  const empty = $('emptyState');
+  if (empty) empty.remove();
+  const wrap = document.createElement('div');
+  wrap.className = 'msg grace';
+  wrap.id = 'typing';
+  const b = document.createElement('div');
+  b.className = 'typing-bubble';
+  b.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+  wrap.appendChild(b);
+  $('messages').appendChild(wrap);
+  $('messages').scrollTop = $('messages').scrollHeight;
+}
+
+function hideTyping() { const t = $('typing'); if (t) t.remove(); }
+
+function msgRef() { return collection(db, 'users', currentUser.uid, 'messages'); }
+
+async function loadMessages() {
+  const snap = await getDocs(query(msgRef(), orderBy('ts')));
+  if (snap.empty) return;
+  snap.forEach(d => {
+    const { role, text, time, date } = d.data();
+    history.push({ role: role === 'user' ? 'user' : 'model', parts: [{ text }] });
+    renderMessage(role, text, time, date, false);
+  });
+}
+
+async function saveMsg(role, text, time, date) {
+  await addDoc(msgRef(), { role, text, time, date, ts: Date.now() });
+}
+
+function resetChat() {
+  history = [];
+  lastDate = null;
+  $('messages').innerHTML = '<div class="empty" id="emptyState"><div class="empty-g">G</div><p>Say something to Grace...</p></div>';
+}
+
+async function send() {
+  const field = $('inputField');
+  const text  = field.value.trim();
+  if (!text || !currentUser) return;
+  if (!apiKey) {
+    $('apiBanner').classList.remove('hidden');
+    alert('Please enter your Gemini API key first.');
+    return;
+  }
+
+  field.value = '';
+  field.style.height = 'auto';
+  $('sendBtn').disabled = true;
+
+  const time = nowTime(), date = dateLabel();
+  renderMessage('user', text, time, date);
+  await saveMsg('user', text, time, date);
+  history.push({ role: 'user', parts: [{ text }] });
+  showTyping();
+
+  try {
+    const res  = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        contents: history,
+        generationConfig: { temperature: 0.9, maxOutputTokens: 300 }
+      })
+    });
+    const data = await res.json();
+    hideTyping();
+
+    if (data.error) { renderMessage('grace', '(quietly) "...something went wrong."', nowTime(), dateLabel()); return; }
+
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '...';
+    const rt = nowTime(), rd = dateLabel();
+    history.push({ role: 'model', parts: [{ text: reply }] });
+    renderMessage('grace', reply, rt, rd);
+    await saveMsg('grace', reply, rt, rd);
+  } catch {
+    hideTyping();
+    renderMessage('grace', '(quietly) "...I think the connection dropped."', nowTime(), dateLabel());
+  } finally {
+    $('sendBtn').disabled = false;
+    field.focus();
+  }
+}
+
+// Auth
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    currentUser = user;
+    $('loginScreen').style.display = 'none';
+    $('chatScreen').style.display  = 'flex';
+    $('userChip').textContent       = user.displayName?.charAt(0).toUpperCase() || '?';
+    if (apiKey) $('apiBanner').classList.add('hidden');
+    await loadMessages();
+  } else {
+    currentUser = null;
+    $('loginScreen').style.display = 'flex';
+    $('chatScreen').style.display  = 'none';
+  }
+});
+
+// Buttons
+$('loginBtn').addEventListener('click', () => signInWithPopup(auth, new GoogleAuthProvider()));
+
+$('logoutBtn').addEventListener('click', async () => {
+  if (!confirm('Log out?')) return;
+  await signOut(auth);
+  resetChat();
+});
+
+$('clearBtn').addEventListener('click', async () => {
+  if (!confirm('Clear all messages?')) return;
+  const snap = await getDocs(query(msgRef(), orderBy('ts')));
+  for (const d of snap.docs) await deleteDoc(doc(db, 'users', currentUser.uid, 'messages', d.id));
+  resetChat();
+});
+
+$('saveKeyBtn').addEventListener('click', () => {
+  const key = $('apiKeyInput').value.trim();
+  if (!key) return;
+  apiKey = key;
+  localStorage.setItem('gemini_api_key', key);
+  $('apiBanner').classList.add('hidden');
+});
+
+$('sendBtn').addEventListener('click', send);
+
+$('inputField').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+});
+
+$('inputField').addEventListener('input', function () {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
+</script>
+</body>
+</html>
